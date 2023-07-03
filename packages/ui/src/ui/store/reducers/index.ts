@@ -80,6 +80,8 @@ export type RootState = Omit<ReturnType<ReturnType<typeof makeRootReducer>>, 'gl
         clusterUiConfig: ClusterUiConfig;
         cluster?: string;
         rootPagesCluster?: string;
+        schedulerVersion: string;
+        masterVersion: string;
     };
 };
 
