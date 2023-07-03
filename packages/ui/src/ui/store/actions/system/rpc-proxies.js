@@ -5,6 +5,7 @@ import {showErrorPopup} from '../../../utils/utils';
 import createActionTypes from '../../../constants/utils';
 import Updater from '../../../utils/hammer/updater';
 import {YTApiId, ytApiV3Id} from '../../../rum/rum-wrap-api';
+import {USE_SUPRESS_SYNC} from '../../../../shared/constants';
 
 export const FETCH_RPC_PROXIES = createActionTypes('RPC_PROXIES');
 const RPC_PROXIES_UPDATER_ID = 'system_rpcproxies';
@@ -34,8 +35,7 @@ function getRPCProxies() {
             .get(YTApiId.systemRpcProxies, {
                 path: '//sys/rpc_proxies',
                 attributes: ['role'],
-                suppress_transaction_coordinator_sync: true,
-                suppress_upstream_sync: true,
+                ...USE_SUPRESS_SYNC,
             })
             .then((data = []) => {
                 dispatch({

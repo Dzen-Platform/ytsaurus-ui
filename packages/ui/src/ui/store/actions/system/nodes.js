@@ -8,6 +8,7 @@ import {showErrorPopup, splitBatchResults} from '../../../utils/utils';
 import {USE_CACHE, USE_MAX_SIZE} from '../../../constants';
 import {YTApiId, ytApiV3Id} from '../../../rum/rum-wrap-api';
 import {getSystemNodesNodeTypesToLoad} from '../../../store/selectors/system/nodes';
+import {USE_SUPRESS_SYNC} from '../../../../shared/constants';
 
 export const FETCH_NODES = createActionTypes('NODES');
 const NODES_UPDATER_ID = 'system_nodes';
@@ -36,8 +37,7 @@ function getNodes() {
                 command: 'list',
                 parameters: {
                     path: '//sys/racks',
-                    suppress_transaction_coordinator_sync: true,
-                    suppress_upstream_sync: true,
+                    ...USE_SUPRESS_SYNC,
                     ...USE_MAX_SIZE,
                 },
             },
@@ -54,8 +54,7 @@ function getNodes() {
                             'full',
                             'rack',
                         ],
-                        suppress_transaction_coordinator_sync: true,
-                        suppress_upstream_sync: true,
+                        ...USE_SUPRESS_SYNC,
                         ...USE_CACHE,
                         ...USE_MAX_SIZE,
                     },
