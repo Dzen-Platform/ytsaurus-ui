@@ -177,3 +177,17 @@ export interface ConfigData {
     allowLoginDialog?: boolean;
     allowUserColumnPresets?: boolean;
 }
+
+export interface UserInfo {
+    username: string;
+    firstName?: string;
+    lastName?: string;
+    avatar?: string;
+}
+
+export interface OauthConfig {
+    name: string;
+    imageUrl: string;
+    clientId: string;
+    authorizePath: string;
+}
