@@ -189,5 +189,5 @@ export interface OauthConfig {
     name: string;
     imageUrl: string;
     clientId: string;
-    authorizePath: string;
+    authorizeUrl: string;
 }
