@@ -30,6 +30,7 @@
     padding: var(--section-main-padding-vertical) var(--section-main-padding-horizontal);
 
     max-width: calc(100vw - var(--nv-aside-header-size));
+    min-height: 100%;
     margin: 0 auto;
     width: 100%;
 

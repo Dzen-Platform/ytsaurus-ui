@@ -7,6 +7,10 @@
 }
 
 .operation-detail {
+    display: flex;
+    flex-direction: column;
+    min-height: 100%;
+
     &_loading {
         height: 200px;
         display: flex;
@@ -75,6 +79,13 @@
     &__script-environment {
         white-space: break-spaces;
         word-break: break-all;
+    }
+
+    &__main {
+        
+        display: flex;
+        flex-grow: 10;
+        flex-direction: column;
     }
 
     @include redefinition('grass', var(--grass-color));

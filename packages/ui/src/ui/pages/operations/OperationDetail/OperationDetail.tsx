@@ -28,6 +28,7 @@ import Statistics from './tabs/statistics/Statistics';
 import Jobs from './tabs/Jobs/Jobs';
 import JobsMonitor from './tabs/JobsMonitor/JobsMonitor';
 import OperationAttributes from './tabs/attributes/OperationAttributes';
+import SparkUi from './tabs/spark-ui/SparkUi/SparkUi';
 
 import Placeholder from '../../../pages/components/Placeholder';
 
@@ -236,6 +237,7 @@ class OperationDetail extends React.Component<ReduxProps & RouteProps> {
             monitorTabVisible,
             monitorTabTitle,
             monitorTabUrlTemplate,
+            sparkUiTabVisible,
         } = this.props;
         const path = `/${cluster}/${Page.OPERATIONS}/${operationId}`;
 
@@ -244,6 +246,7 @@ class OperationDetail extends React.Component<ReduxProps & RouteProps> {
             [Tab.STATISTICS]: {show: hasStatististicsTab},
             [Tab.JOBS_MONITOR]: {show: jobsMonitorVisible},
             [Tab.MONITOR]: {show: monitorTabVisible},
+            [Tab.SPARK_UI]: {show: sparkUiTabVisible},
         };
 
         if (monitorTabUrlTemplate) {
@@ -262,6 +265,7 @@ class OperationDetail extends React.Component<ReduxProps & RouteProps> {
 
         const props = makeTabProps(path, Tab, showSettings, undefined, {
             [Tab.MONITOR]: monitorTabTitle ?? 'Monitoring',
+            [Tab.SPARK_UI]: 'Spark UI',
         });
 
         return (
@@ -278,10 +282,12 @@ class OperationDetail extends React.Component<ReduxProps & RouteProps> {
     }
 
     renderMain() {
-        const {match, cluster, monitorTabVisible, jobsMonitorVisible, monitoringComponent} =
+        const {match, cluster, monitorTabVisible, sparkUiTabVisible, jobsMonitorVisible, monitoringComponent} =
             this.props;
         const {url, params} = match;
         const {operationId} = params;
+
+        // console.log(operation.description)
 
         const path = `/${cluster}/${Page.OPERATIONS}/${operationId}`;
 
@@ -313,8 +319,11 @@ class OperationDetail extends React.Component<ReduxProps & RouteProps> {
                     {jobsMonitorVisible && (
                         <Route path={`${path}/${Tab.JOBS_MONITOR}`} component={JobsMonitor} />
                     )}
-                    <Route path={`${path}/:tab`} component={Placeholder} />
+                    {sparkUiTabVisible && (
+                        <Route path={`${path}/${Tab.SPARK_UI}`} component={SparkUi} />
+                    )}
                     <Redirect from={url} to={`${path}/${DEFAULT_TAB}`} />
+                    <Route path={`${path}/:tab`} component={Placeholder} />
                 </Switch>
             </div>
         );
@@ -394,6 +403,8 @@ const mapStateToProps = (state: RootState) => {
 
     const monitorTabVisible = Boolean(monitoringComponent) || Boolean(monitorTabUrlTemplate);
 
+    const sparkUiTabVisible = Boolean(operation.description && (operation.description as any)["Web UI"]);
+
     return {
         cluster: getCurrentCluster(state),
         operation,
@@ -409,6 +420,7 @@ const mapStateToProps = (state: RootState) => {
         monitorTabVisible,
         monitorTabTitle,
         monitorTabUrlTemplate,
+        sparkUiTabVisible,
         monitoringComponent,
         jobsMonitorVisible:
             Boolean(UIFactory.getMonitorComponentForJob()) && getJobsMonitorTabVisible(state),
