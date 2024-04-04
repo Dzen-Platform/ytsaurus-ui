@@ -68,3 +68,63 @@ function applyInternalProxy(clusterConfig: ClusterConfig) {
         proxy: internalProxyName,
     };
 }
+
+interface CacheItem<T> {
+    value: T;
+    expiry: number;
+}
+
+export class LRUCacheWithTTL<T> {
+    private cache: Map<string, CacheItem<T>>;
+    private max: number;
+    private maxAge: number;
+
+    constructor(max: number, maxAge: number) {
+        this.cache = new Map<string, CacheItem<T>>();
+        this.max = max;
+        this.maxAge = maxAge;
+    }
+
+    get(key: any): T | undefined {
+        const stringKey = JSON.stringify(key);
+        const item = this.cache.get(stringKey);
+        if (item && Date.now() < item.expiry) {
+            // Refresh the item's expiry
+            item.expiry = Date.now() + this.maxAge;
+            // Rearrange item in the cache to keep it most recently used
+            this.cache.delete(stringKey);
+            this.cache.set(stringKey, item);
+            return item.value;
+        } else {
+            // Item not found or expired
+            this.cache.delete(stringKey);
+            return undefined;
+        }
+    }
+
+    has(key: any): boolean {
+        const stringKey = JSON.stringify(key);
+        return this.cache.has(stringKey);
+    }
+
+    set(key: any, value: T): void {
+        const stringKey = JSON.stringify(key);
+        // If cache is at max capacity, remove the least recently used item
+        if (this.cache.size >= this.max) {
+            const oldestKey = this.cache.keys().next().value;
+            this.cache.delete(oldestKey);
+        }
+        // Set the item with its expiry
+        this.cache.set(stringKey, { value, expiry: Date.now() + this.maxAge });
+    }
+
+    delete(key: any): void {
+        const stringKey = JSON.stringify(key);
+        this.cache.delete(stringKey);
+    }
+
+    clear(): void {
+        this.cache.clear();
+    }
+}
+

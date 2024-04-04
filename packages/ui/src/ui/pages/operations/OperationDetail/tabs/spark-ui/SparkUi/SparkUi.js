@@ -1,4 +1,4 @@
-import React, {Component} from 'react';
+import React, {Component, useState, useRef, useEffect} from 'react';
 import {connect, useSelector} from 'react-redux';
 import PropTypes from 'prop-types';
 import cn from 'bem-cn-lite';
@@ -20,48 +20,111 @@ import {operationProps, runtimeProps, eventsProps, resourcesProps, intermediateR
 
 import {specificationProps} from '../../details/Specification/Specification';
 
+import { Button, Icon, Label, Link } from '@gravity-ui/uikit';
+import { ArrowRotateLeft, ArrowUpRightFromSquare } from '@gravity-ui/icons';
+
 
 import './SparkUi.scss';
 
 const block = cn('spark-ui');
 
-class SparkUi extends Component {
-    static propTypes = {
-        error: PropTypes.object,
-        operation: operationProps.isRequired,
-        cluster: PropTypes.string.isRequired,
-        result: PropTypes.shape({
-            error: PropTypes.object.isRequired,
-        }),
-        runtime: runtimeProps,
+
+const SparkUi = ({ operation, showEditPoolsWeightsModal, cluster }) => {
+    const [isLoading, setIsLoading] = useState(false);
+    const [isIframeVisible, setIsIframeVisible] = useState(false);
+    const [sparkUiState, setSparkUiState] = useState("UNKNOWN");
+    const iframeRef = useRef(null);
+
+    const fetchSparkUiState = async () => {
+        try {
+            const response = await fetch(`/api/spark-ui/${cluster}/${operation.id}/health`);
+            const data = await response.json();
+            if (sparkUiState != "ONLINE" && data.state == "ONLINE") {
+                setIsIframeVisible(true);
+            }
+            setSparkUiState(data.state);
+        } catch (error) {
+            console.error('Error fetching Spark UI state:', error);
+            setSparkUiState("UNKNOWN");
+        }
     };
 
-    handleEditClick = () => {
-        const {operation, showEditPoolsWeightsModal} = this.props;
-        showEditPoolsWeightsModal(operation);
+
+    const refresh = () => {
+        setSparkUiState("UNKNOWN");
+        setIsLoading(true);
+        fetchSparkUiState();
+        iframeRef.current?.contentWindow.location.reload();
     };
 
-    renderDescription() {
-        const {description, collapsibleSize} = this.props.operation;
 
-        return (
-            JSON.stringify(description)
-        );
+    useEffect(() => {
+
+        
+        const intervalId = setInterval(() => {
+            fetchSparkUiState();
+        }, 10000); // Fetch every 10 seconds
+
+        fetchSparkUiState();
+        
+        return () => {
+            clearInterval(intervalId);
+        };
+    }, []);
+
+    const renderDescription = () => {
+        const { description } = operation;
+        return JSON.stringify(description);
+    };
+
+    const webUiAddr = operation.description["Web UI"];
+    const src = `/api/spark-ui/${cluster}/${operation.id}/proxy/`;
+
+
+    const mapStateToTheme = (state) => {
+        if (state == "ONLINE") {
+            return "success";
+        }
+        if (state == "OFFLINE") {
+            return "danger";
+        }
+        return "warning"
     }
 
-    render() {
-        const {description} = this.props.operation;
-        const src = `/spark-ui-proxy/${encodeURIComponent(description["Web UI"])}/`;
-        return (
-            <div className={block()}>
-                {src}
-                {this.renderDescription()}
-                <a href={src} target='_blank'>Open in new window</a>
-                <iframe src={src} className={block('iframe')}></iframe>
+    return (
+        <div className={block()}>
+            <div className={block('toolbar')}>
+                <div className={block('toolbar-labels')}>
+                    <Label theme={mapStateToTheme(sparkUiState)} size='m'>
+                        Spark UI: {sparkUiState}
+                    </Label>
+                </div>
+                <div>
+                    <Button onClick={refresh} loading={isLoading} title='Refresh'>
+                        <Icon data={ArrowRotateLeft} size={16} />
+                    </Button>
+                    {"  "}
+                    <Button href={src} target='_blank' title="Open in new window">
+                        <Icon data={ArrowUpRightFromSquare} size={16} />
+                    </Button>
+                </div>
             </div>
-        );
-    }
-}
+            <iframe style={{ display: isIframeVisible ? 'block' : 'none' }} ref={iframeRef} src={src} className={block('iframe')} onLoad={() => {
+                setIsLoading(false);
+            }} onError={() => {
+                setIsLoading(false);
+            }} onAbort={() => {
+                setIsLoading(false);
+            }}></iframe>
+        </div>
+    );
+};
+
+SparkUi.propTypes = {
+    operation: operationProps.isRequired,
+    showEditPoolsWeightsModal: PropTypes.func.isRequired,
+};
+
 
 const mapStateToProps = (state) => {
     const {operations, global} = state;

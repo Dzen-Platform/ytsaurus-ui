@@ -22,7 +22,7 @@ import {markdownToHtmlHandler} from './controllers/markdown-to-html';
 import {odinProxyApi} from './controllers/odin-proxy-api';
 import {getClustersAvailability} from './controllers/availability';
 import {handleOauthCallback, handleOauthConfig} from './controllers/ytauth';
-import {handleSparkProxy} from './controllers/spark'
+import {handleCheckSparkUiState, handleSparkProxy} from './controllers/spark'
 
 const HOME_INDEX_TARGET: AppRouteDescription = {handler: homeIndex, ui: true};
 
@@ -65,7 +65,8 @@ const routes: AppRoutes = {
     },
     'POST /api/table-column-preset': {handler: tableColumnPresetSave},
 
-    'GET  /spark-ui-proxy/:url/*': {handler: handleSparkProxy, ui: true},
+    'GET  /api/spark-ui/:cluster/:operation/health': {handler: handleCheckSparkUiState},
+    'GET  /api/spark-ui/:cluster/:operation/proxy/*': {handler: handleSparkProxy, ui: true},
 
     'GET /:cluster/': HOME_INDEX_TARGET,
     'GET /:cluster/maintenance': {handler: homeRedirect},
