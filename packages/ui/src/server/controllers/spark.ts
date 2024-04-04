@@ -1,10 +1,8 @@
 import type {Request, Response} from 'express';
 import fetch from 'node-fetch-commonjs';
 import {
-    YTApiClusterSetup,
     YTApiUserSetup,
     getUserYTApiSetup,
-    getYTApiClusterSetup,
 } from '../components/requestsSetup';
 import axios from 'axios';
 import { LRUCacheWithTTL } from '../components/utils';
