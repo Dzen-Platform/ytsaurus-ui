@@ -78,7 +78,7 @@ const SparkUi = ({ operation, showEditPoolsWeightsModal, cluster }) => {
     };
 
     const webUiAddr = operation.description["Web UI"];
-    const src = `/api/spark-ui/${cluster}/${operation.id}/proxy/`;
+    const src = `/api/spark-ui/${cluster}/${operation.id}/gateway/`;
 
 
     const mapStateToTheme = (state) => {

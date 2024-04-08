@@ -101,7 +101,6 @@ export async function handleSparkProxy(req: Request, res: Response) {
 
     headers.host = url.host;
 
-    console.log('!!!!!!!!!!! URL', url.toString());
 
     const resp = await fetch(url.toString(), {
         headers: Object.fromEntries(
@@ -130,22 +129,13 @@ export async function handleSparkProxy(req: Request, res: Response) {
         resp.headers.get('content-type')!.indexOf('text/html') > -1
     ) {
         let data = respBuffer.toString('utf8');
-        let nothingFound = true;
-        for (let match of data.matchAll(/(\/proxy\/spark-application-[0-9]*\/)/g)) {
-            const url = match[1]; // Get the URL
-            data = data.replace(url, prefix);
-            nothingFound = false;
+
+        let prevAppPrefix = data.match(/setUIRoot\('(\/proxy\/spark-application-[0-9]*)'\)/)?.[1]!;
+
+        if (prevAppPrefix) {
+            data = data.replace(new RegExp(prevAppPrefix, 'g'), prefix.substring(0, prefix.length - 1) )
         }
 
-        if (nothingFound) {
-            res.status(400);
-            res.end(`
-                <div style="display: flex; min-height: 100%; align-items: center; justify-content: center; font-weight: 800; font-family: Roboto, Arial; color: red;">
-                    To utilize the Spark UI, enable reverse proxy mode by adding: "--conf spark.ui.reverseProxy=true".
-                </div>
-            `);
-            return;
-        }
         res.send(data);
     } else {
         res.send(respBuffer);
@@ -191,7 +181,7 @@ async function getSparkUiUrl(req: Request, cluster: string,  operationId: string
     const operation = await getOperation(req, cfg, req.params.operation)
     return {
         url: operation?.runtime_parameters?.annotations?.description?.["Web UI"],
-        proxyUrl: `/api/spark-ui/${cluster}/${operationId}/proxy`
+        proxyUrl: `/api/spark-ui/${cluster}/${operationId}/gateway`
     }
 }
 

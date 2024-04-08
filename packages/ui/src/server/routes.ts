@@ -66,7 +66,7 @@ const routes: AppRoutes = {
     'POST /api/table-column-preset': {handler: tableColumnPresetSave},
 
     'GET  /api/spark-ui/:cluster/:operation/health': {handler: handleCheckSparkUiState},
-    'GET  /api/spark-ui/:cluster/:operation/proxy/*': {handler: handleSparkProxy, ui: true},
+    'GET  /api/spark-ui/:cluster/:operation/gateway/*': {handler: handleSparkProxy, ui: true},
 
     'GET /:cluster/': HOME_INDEX_TARGET,
     'GET /:cluster/maintenance': {handler: homeRedirect},
